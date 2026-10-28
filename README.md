@@ -13,6 +13,7 @@ This project was built to run on Windows 11 without requiring Windows activation
 - Uses Windows API calls to position the application behind desktop icons.
 - Runs without Wallpaper Engine or other dedicated wallpaper software.
 - Uses a local video file, so an internet connection is not required for playback after setup.
+- Runs on Startup
 
 ## How It Works
 
@@ -150,10 +151,95 @@ The project should compile and launch the application. If the Windows desktop in
 If compilation fails, review the reported errors before attempting to run the application.
 
 
+## Run Automatically on Windows Startup
+
+Native Wallpaper can launch automatically when you sign in to Windows using Task Scheduler. This method was tested on Windows 11 25H2.
+
+### 1. Publish the Application
+
+Open a terminal in the project folder and run:
+
+```powershell
+dotnet publish -c Release -r win-x64 --self-contained true
+```
+
+This creates a standalone Windows build in the publish output directory, typically:
+
+`bin\Release\netX.X-windows\win-x64\publish\`
+
+The exact path depends on the target .NET version in your project.
+
+### 2. Move the Published Files to a Permanent Location
+
+1. Open the `publish` folder created by the command above.
+2. Create a permanent folder for the application, for example:
+
+   `%LOCALAPPDATA%\Programs\NativeWallpaper\`
+
+3. Copy **all files and subfolders** from the `publish` folder into this permanent folder.
+4. Confirm that `NativeWallpaper.exe` (or your project's actual executable name) is inside it.
+5. Double-click the executable to verify that the wallpaper works.
+
+Do not delete the permanent folder after configuring startup. Task Scheduler will launch the executable from this location.
+
+### 3. Create a Task in Task Scheduler
+
+1. Open the Windows Start menu, search for **Task Scheduler**, and launch it.
+2. Select **Task Scheduler Library** in the left panel.
+3. Click **Create Task** in the right panel.
+
+**General tab**
+- Name: `Native Wallpaper`
+- Select **Run only when user is logged on**.
+- Set **Configure for** to **Windows 10** if Windows 11 is not listed.
+
+**Triggers tab**
+1. Click **New**.
+2. Set **Begin the task** to **At log on**.
+3. Leave the delay disabled.
+4. Click **OK**.
+
+**Actions tab**
+1. Click **New**.
+2. Set **Action** to **Start a program**.
+3. Click **Browse** and select the executable in your permanent application folder.
+4. In **Start in (optional)**, enter the full path to the folder containing the executable, without the executable filename.
+5. Click **OK**.
+
+**Conditions tab**
+- Uncheck **Start the task only if the computer is on AC power** so the wallpaper can start while running on battery.
+- Review any other conditions that might prevent the task from running.
+
+Click **OK** to save the task.
+
+### 4. Test Automatic Startup
+
+1. Return to **Task Scheduler Library**.
+2. Find `Native Wallpaper`.
+3. Right-click the task and select **Run**.
+4. Confirm that the animated wallpaper appears.
+5. Restart the computer and sign in to verify that it launches automatically.
+
+### Notes
+
+- The task runs when you sign in, not before the Windows desktop loads.
+- Keep the application in its permanent folder. Moving or deleting the files will break the task.
+- The wallpaper video must remain at the location expected by the application.
+- This setup uses Task Scheduler rather than the Windows Startup folder.
 
 
 
 
+
+
+
+
+
+
+
+
+
+## Additional Information/Troubleshooting Tips
 
 ## Windows Desktop Integration
 
