@@ -38,73 +38,58 @@ Windows does not provide a guaranteed, stable public API for hosting arbitrary a
 
 The WebView2 Runtime is required to render the video. It may already be installed on your computer.
 
+
+
+
+
+
+
 ## Project Setup
 
 ### 1. Install the .NET SDK
 
-Install the .NET SDK from the official Microsoft website:
+Install the .NET 10 SDK from Microsoft's official website:
 
 https://dotnet.microsoft.com/download/dotnet/10.0
 
-Verify that it is installed by opening Command Prompt and running:
+Verify the installation by opening Command Prompt and running:
 
 ```cmd
 dotnet --version
 ```
 
-The command should return an installed SDK version.
+### 2. Create the project
 
-### 2. Create the Windows Forms project
-
-Navigate to the directory where you want to create the project.
-
-Create the project using:
+Run the following commands in Command Prompt:
 
 ```cmd
 dotnet new winforms -n AnimatedWallpaper
 cd AnimatedWallpaper
 ```
 
-This generates the basic Windows Forms application structure.
+This creates a new Windows Forms application and generates the project configuration file (`AnimatedWallpaper.csproj`) along with the standard source files.
 
-### 3. Install the WebView2 NuGet package
+You do not need to download a prebuilt project configuration file from this repository. The .NET SDK generates one for your environment.
 
-Run:
+### 3. Install WebView2
+
+Add the Microsoft WebView2 NuGet package:
 
 ```cmd
 dotnet add package Microsoft.Web.WebView2
 ```
 
-This adds the WebView2 controls and APIs needed to render the HTML video player.
+This package allows the application to embed the WebView2 browser control.
 
-The WebView2 Runtime is separate from the NuGet package. The package provides the application integration, while the runtime provides the browser engine.
+The WebView2 Runtime is also required. It may already be installed on your system.
 
-### 4. Add the wallpaper video
+### 4. Replace Form1.cs
 
-Place your video in the current Windows user's Videos folder and name it:
+Open the newly created `AnimatedWallpaper` project folder.
 
-```text
-wallpaper.mp4
-```
+Replace the contents of the generated `Form1.cs` file with the `Form1.cs` implementation provided in this repository.
 
-The application locates the file using:
-
-```csharp
-Environment.GetFolderPath(
-    Environment.SpecialFolder.MyVideos)
-```
-
-The expected path will typically resemble:
-
-```text
-C:\Users\<username>\Videos\wallpaper.mp4
-```
-
-To use a different video, either replace `wallpaper.mp4` or update the filename in `Form1.cs`.
-
-### 5. Replace Form1.cs
-
-Open `Form1.cs` and replace its contents with the implementation included in this repository.
+Keep the other generated project files in place, including `AnimatedWallpaper.csproj` and `Program.cs`.
 
 The implementation is responsible for:
 
@@ -123,6 +108,18 @@ https://wallpaper.local/wallpaper.mp4
 ```
 
 WebView2 maps this hostname to the user's Videos folder through `SetVirtualHostNameToFolderMapping`. This allows the HTML page to load the local video through WebView2's virtual-host mechanism.
+
+### 5. Add your video
+
+Place your own MP4 file in your Windows user's Videos folder and name it:
+
+```text
+wallpaper.mp4
+```
+
+The application locates this folder automatically, so you do not need to edit the source code to include your Windows username or a machine-specific file path.
+
+The expected filename is `wallpaper.mp4`. If you want to use another filename, update the corresponding path in `Form1.cs`.
 
 ### 6. Build the application
 
@@ -147,6 +144,16 @@ dotnet run
 The application checks that the video exists, initializes WebView2, loads the video, waits briefly for the browser's video surface to initialize, and then attempts desktop integration.
 
 If everything works, the video should fill the desktop background while the desktop icons remain accessible.
+
+The project should compile and launch the application. If the Windows desktop integration succeeds on your system, the video will appear as your animated desktop background.
+
+If compilation fails, review the reported errors before attempting to run the application.
+
+
+
+
+
+
 
 ## Windows Desktop Integration
 
