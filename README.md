@@ -230,40 +230,10 @@ Click **OK** to save the task.
 
 
 
-
-
-
-
-
-
-
-
-
 ## Additional Information/Troubleshooting Tips
 
-## Windows Desktop Integration
+-
 
-### The WorkerW approach
-
-Windows desktop rendering involves shell-managed windows, including `Progman`, `WorkerW`, and `SHELLDLL_DefView`.
-
-The implementation sends the `0x052C` message to `Progman` to request the creation of a desktop worker window. It then searches for a suitable target and uses `SetParent` to reparent the wallpaper window.
-
-The code includes multiple discovery paths because desktop window arrangements can differ across Windows configurations.
-
-It also changes the window styles to make the application a child window, applies layered-window attributes, and positions the window using `SetWindowPos`.
-
-### Why this required experimentation
-
-Simply creating a borderless, fullscreen video window does not make it a wallpaper. A normal fullscreen window covers desktop icons and other windows, behaving like any other application.
-
-The challenge was getting Windows to treat the video window as part of the desktop rather than as a regular foreground application.
-
-The initial implementation used a basic `WorkerW` search. On the test system, that search did not find a suitable wallpaper layer. Subsequent testing explored alternative window discovery methods, parent selection, and window positioning.
-
-The current implementation includes additional checks and fallback logic to handle these differences.
-
-**Important:** The desktop integration is experimental. The relevant Windows API behavior is not guaranteed across all Windows 11 builds. If the video covers the screen, disappears, or attaches to the wrong window, terminate the application and review the window discovery logic.
 
 ## Troubleshooting
 
@@ -328,15 +298,38 @@ The ordinary video-player implementation was retained as a backup during develop
 - The project uses Windows-specific APIs and is not cross-platform.
 - Desktop integration may require changes for different Windows versions or configurations.
 - The application does not currently provide a settings interface for selecting videos.
-- Automatic startup and multi-monitor support are not included in the current implementation.
 
 ## Planned Future Improvements ( hopefully I remember this project :) )
 
 - Support for multiple monitors.
-- Automatic startup after user sign-in.
+- Automatic startup after user sign-in (DONE)
 - Better recovery if the Windows desktop restarts.
 - More robust detection of the correct desktop window (larger applicability window for different windows versions) 
 - Configuration for video scaling and playback behavior.
+
+## Windows Desktop Integration info (In case any of you are curious)
+
+### The WorkerW approach
+
+Windows desktop rendering involves shell-managed windows, including `Progman`, `WorkerW`, and `SHELLDLL_DefView`.
+
+The implementation sends the `0x052C` message to `Progman` to request the creation of a desktop worker window. It then searches for a suitable target and uses `SetParent` to reparent the wallpaper window.
+
+The code includes multiple discovery paths because desktop window arrangements can differ across Windows configurations.
+
+It also changes the window styles to make the application a child window, applies layered-window attributes, and positions the window using `SetWindowPos`.
+
+### Why this required experimentation
+
+Simply creating a borderless, fullscreen video window does not make it a wallpaper. A normal fullscreen window covers desktop icons and other windows, behaving like any other application.
+
+The challenge was getting Windows to treat the video window as part of the desktop rather than as a regular foreground application.
+
+The initial implementation used a basic `WorkerW` search. On the test system, that search did not find a suitable wallpaper layer. Subsequent testing explored alternative window discovery methods, parent selection, and window positioning.
+
+The current implementation includes additional checks and fallback logic to handle these differences.
+
+**Important:** The desktop integration is experimental. The relevant Windows API behavior is not guaranteed across all Windows 11 builds. If the video covers the screen, disappears, or attaches to the wrong window, terminate the application and review the window discovery logic.
 
 ## License
 
