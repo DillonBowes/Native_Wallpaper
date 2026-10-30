@@ -135,9 +135,8 @@ Run:
 dotnet build
 ```
 
-Wait for the build to complete. Resolve any compilation errors before proceeding.
-
-A `WindowsBase` version conflict warning may appear because of transitive references included with the WebView2 package. This warning is distinct from a compilation error, but it should be investigated if it leads to runtime problems.
+Wait for the build to complete. Resolve any compilation ERRORS before proceeding. A "succeeded with 1 warning(s)" is usually a A `WindowsBase` version conflict, this warning is distinct from a compilation error, and can be safely ignored. It is safe to assume that any "succeeded with n warning(s)" from this point forward can be ignored. 
+ 
 
 ### 7. Run the application
 
@@ -149,11 +148,9 @@ dotnet run
 
 The application checks that the video exists, initializes WebView2, loads the video, waits briefly for the browser's video surface to initialize, and then attempts desktop integration.
 
-If everything works, the video should fill the desktop background while the desktop icons remain accessible.
+If everything works, the video should fill the desktop background while the desktop icons remain accessible. NOTE: The application will take up the entire screen to allow you to judge proper fitment. Simply clicking the screen will push the animated background to the back behind desktop shortcuts. 
 
-The project should compile and launch the application. If the Windows desktop integration succeeds on your system, the video will appear as your animated desktop background.
-
-If compilation fails, review the reported errors before attempting to run the application.
+If compilation fails, review the reported errors before attempting to run the application or reach out to me and I can push a hotfix/evaluate the error.
 
 
 ## Run Automatically on Windows Startup
@@ -162,7 +159,12 @@ Native Wallpaper can launch automatically when you sign in to Windows using Task
 
 ### 1. Publish the Application
 
-Open a terminal in the project folder and run:
+Before publishing, close the running wallpaper application:
+1. Open Task Manager by pressing `Ctrl + Shift + Esc`.
+2. Find `AnimatedWallpaper` in the list of running apps or processes.
+3. Right-click it and select **End task**. This closes the wallpaper application that is currently running.
+
+In the same Command Prompt window you used earlier to run `dotnet run` (the one that is already open), type or copy and paste the following command, then press **Enter**:
 
 ```powershell
 dotnet publish -c Release -r win-x64 --self-contained true
@@ -176,16 +178,31 @@ The exact path depends on the target .NET version in your project.
 
 ### 2. Move the Published Files to a Permanent Location
 
-1. Open the `publish` folder created by the command above.
-2. Create a permanent folder for the application, for example:
+1. Open **File Explorer**.
+2. Click the address bar at the top of the window, type or paste the following path, and press **Enter**:
 
-   `%LOCALAPPDATA%\Programs\NativeWallpaper\`
+   `%LOCALAPPDATA%\Programs`
 
-3. Copy **all files and subfolders** from the `publish` folder into this permanent folder.
-4. Confirm that `NativeWallpaper.exe` (or your project's actual executable name) is inside it.
-5. Double-click the executable to verify that the wallpaper works.
+   This opens the Programs folder inside your Windows user account's local AppData folder. Windows automatically resolves `%LOCALAPPDATA%` to the correct location for your account.
 
-Do not delete the permanent folder after configuring startup. Task Scheduler will launch the executable from this location.
+3. Inside the Programs folder, create a new folder named:
+
+   `NativeWallpaper`
+
+   Your permanent application folder will now be:
+
+   `C:\Users\YOUR_NAME\%LOCALAPPDATA%\Programs\NativeWallpaper\`
+
+4. Open your project's `publish` folder. It is typically located at:
+
+   `C:\Users\YOUR_NAME\AnimatedWallpaper\bin\Release\netX.X-windows\win-x64\publish\`
+
+5. Select **all files and subfolders** inside the `publish` folder and copy them.
+6. Paste them into your new `NativeWallpaper` folder.
+7. Confirm that `NativeWallpaper.exe` (or your project's actual executable name) is directly inside the permanent folder.
+8. Double-click the executable to verify that the wallpaper works.
+
+**Important:** Copy the contents of the `publish` folder, not the `publish` folder itself. Do not delete or move the permanent folder after configuring startup. Task Scheduler will launch the executable from this location.
 
 ### 3. Create a Task in Task Scheduler
 
@@ -207,8 +224,8 @@ Do not delete the permanent folder after configuring startup. Task Scheduler wil
 **Actions tab**
 1. Click **New**.
 2. Set **Action** to **Start a program**.
-3. Click **Browse** and select the executable in your permanent application folder.
-4. In **Start in (optional)**, enter the full path to the folder containing the executable, without the executable filename.
+3. Click **Browse** and select the executable in your permanent application folder. Usually `C:\Users\YOUR_NAME \AppData\Local\Programs\NativeWallpaper\AnimatedWallpaper.exe`
+4. In **Start in (optional)**, enter the full path to the folder containing the executable, without the executable filename. Usually `C:\Users\YOUR_NAME\AppData\Local\Programs\NativeWallpaper`
 5. Click **OK**.
 
 **Conditions tab**
@@ -233,6 +250,19 @@ Click **OK** to save the task.
 - This setup uses Task Scheduler rather than the Windows Startup folder.
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+  
 
 
 ## Additional Information/Troubleshooting Tips
