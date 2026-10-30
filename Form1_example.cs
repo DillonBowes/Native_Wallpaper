@@ -1,4 +1,3 @@
-
 using System;
 using System.Drawing;
 using System.IO;
@@ -21,9 +20,14 @@ namespace AnimatedWallpaper
         private readonly WebView2 browser = new WebView2();
 
         private const int GWL_STYLE = -16;
+        private const int GWL_EXSTYLE = -20;
 
         private const long WS_CHILD = 0x40000000L;
         private const long WS_POPUP = unchecked((long)0x80000000);
+        private const long WS_EX_LAYERED = 0x00080000L;
+        private const long WS_EX_TOOLWINDOW = 0x00000080L;
+
+        private const uint LWA_ALPHA = 0x00000002;
 
         private const uint SWP_NOACTIVATE = 0x0010;
         private const uint SWP_FRAMECHANGED = 0x0020;
@@ -83,6 +87,13 @@ namespace AnimatedWallpaper
             int x, int y, int width, int height,
             uint flags);
 
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool SetLayeredWindowAttributes(
+            IntPtr hWnd, uint colorKey, byte alpha, uint flags);
+
+        [DllImport("kernel32.dll")]
+        private static extern void SetLastError(uint error);
+
         private static IntPtr GetWindowLongPtr(
             IntPtr hWnd, int index)
         {
@@ -94,10 +105,24 @@ namespace AnimatedWallpaper
         private static IntPtr SetWindowLongPtr(
             IntPtr hWnd, int index, IntPtr newStyle)
         {
-            return IntPtr.Size == 8
-                ? SetWindowLongPtr64(hWnd, index, newStyle)
-                : new IntPtr(SetWindowLong32(
-                    hWnd, index, newStyle.ToInt32()));
+            if (IntPtr.Size == 8)
+                return SetWindowLongPtr64(hWnd, index, newStyle);
+
+            return new IntPtr(SetWindowLong32(
+                hWnd, index, newStyle.ToInt32()));
+        }
+
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cp = base.CreateParams;
+
+                cp.ExStyle |=
+                    (int)(WS_EX_LAYERED | WS_EX_TOOLWINDOW);
+
+                return cp;
+            }
         }
 
         public Form1()
@@ -119,7 +144,7 @@ namespace AnimatedWallpaper
         {
             try
             {
-                // Uses the current Windows user's Videos folder.
+                // Automatically detect the current user's Videos folder.
                 string videoFolder = Environment.GetFolderPath(
                     Environment.SpecialFolder.MyVideos);
 
@@ -159,6 +184,7 @@ namespace AnimatedWallpaper
 
                 browser.NavigateToString(html);
 
+                // Allow WebView2 time to initialize its video surface.
                 await Task.Delay(1200);
 
                 if (!IsDisposed && IsHandleCreated)
@@ -184,6 +210,7 @@ namespace AnimatedWallpaper
                 return;
             }
 
+            // Request the Windows desktop wallpaper layer.
             SendMessageTimeout(
                 progman,
                 WM_SPAWN_WORKER,
@@ -193,12 +220,14 @@ namespace AnimatedWallpaper
                 1000,
                 out _);
 
+            // Prefer a WorkerW that is a child of Progman.
             IntPtr target = FindWindowEx(
                 progman, IntPtr.Zero, "WorkerW", null);
 
             IntPtr desktopView = FindWindowEx(
                 progman, IntPtr.Zero, "SHELLDLL_DefView", null);
 
+            // Classic desktop fallback.
             if (target == IntPtr.Zero)
             {
                 IntPtr current = IntPtr.Zero;
@@ -227,6 +256,7 @@ namespace AnimatedWallpaper
                 }
             }
 
+            // Last resort: use Progman.
             if (target == IntPtr.Zero)
                 target = progman;
 
@@ -234,6 +264,8 @@ namespace AnimatedWallpaper
 
             long newStyle =
                 (style.ToInt64() & ~WS_POPUP) | WS_CHILD;
+
+            SetLastError(0);
 
             SetWindowLongPtr(
                 Handle, GWL_STYLE, new IntPtr(newStyle));
@@ -246,10 +278,15 @@ namespace AnimatedWallpaper
             if (previousParent == IntPtr.Zero && parentError != 0)
             {
                 ShowError(
-                    "Could not attach to the desktop.\nError: " +
-                    parentError);
+                    "Could not attach to the desktop layer.\n" +
+                    "Win32 error: " + parentError);
+
                 return;
             }
+
+            // Keep the layered window fully opaque.
+            SetLayeredWindowAttributes(
+                Handle, 0, 255, LWA_ALPHA);
 
             Rectangle bounds = Screen.PrimaryScreen!.Bounds;
 
@@ -270,8 +307,9 @@ namespace AnimatedWallpaper
             if (!positioned)
             {
                 ShowError(
-                    "Could not position the wallpaper.\nError: " +
-                    Marshal.GetLastWin32Error());
+                    "Could not position the wallpaper.\n" +
+                    "Win32 error: " + Marshal.GetLastWin32Error());
+
                 return;
             }
 
