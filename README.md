@@ -251,23 +251,7 @@ Click **OK** to save the task.
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-  
-
-
 ## Additional Information/Troubleshooting Tips
-
--
 
 
 ## Troubleshooting
@@ -289,7 +273,7 @@ Run:
 dotnet build
 ```
 
-Review the compiler errors. A warning does not necessarily indicate that the build failed. Resolve errors before running the application.
+Review the compiler errors. A warning does not necessarily indicate that the build failed. Resolve errors before running the application. Copilot and ChatGPT are useful tools to reference/ask questions. 
 
 ### The video covers everything
 
@@ -353,16 +337,6 @@ The implementation sends the `0x052C` message to `Progman` to request the creati
 The code includes multiple discovery paths because desktop window arrangements can differ across Windows configurations.
 
 It also changes the window styles to make the application a child window, applies layered-window attributes, and positions the window using `SetWindowPos`.
-
-### Why this required experimentation
-
-Simply creating a borderless, fullscreen video window does not make it a wallpaper. A normal fullscreen window covers desktop icons and other windows, behaving like any other application.
-
-The challenge was getting Windows to treat the video window as part of the desktop rather than as a regular foreground application.
-
-The initial implementation used a basic `WorkerW` search. On the test system, that search did not find a suitable wallpaper layer. Subsequent testing explored alternative window discovery methods, parent selection, and window positioning.
-
-The current implementation includes additional checks and fallback logic to handle these differences.
 
 **Important:** The desktop integration is experimental. The relevant Windows API behavior is not guaranteed across all Windows 11 builds. If the video covers the screen, disappears, or attaches to the wrong window, terminate the application and review the window discovery logic.
 
