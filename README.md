@@ -53,6 +53,11 @@ Install the .NET 10 SDK from Microsoft's official website:
 
 https://dotnet.microsoft.com/download/dotnet/10.0
 
+Under SDK 10.0.403, select:
+- OS: Windows
+- Architecture: x64
+- Download: Installer
+
 Verify the installation by opening Command Prompt and running:
 
 ```cmd
@@ -86,9 +91,9 @@ The WebView2 Runtime is also required. It may already be installed on your syste
 
 ### 4. Replace Form1.cs
 
-Open the newly created `AnimatedWallpaper` project folder.
+Open the newly created `AnimatedWallpaper` project folder in file explorer.
 
-Replace the contents of the generated `Form1.cs` file with the `Form1.cs` implementation provided in this repository.
+Replace the contents of the generated `Form1.cs` file with the `Form1.cs` implementation provided in this repository. Or simply cut and paste the file from downloads into the folder and change the name to Form1.cs
 
 Keep the other generated project files in place, including `AnimatedWallpaper.csproj` and `Program.cs`.
 
@@ -112,7 +117,7 @@ WebView2 maps this hostname to the user's Videos folder through `SetVirtualHostN
 
 ### 5. Add your video
 
-Place your own MP4 file in your Windows user's Videos folder and name it:
+Place your own MP4 file in your Windows user's Videos folder (C:\Users\YOUR_NAME\Videos) and name it:
 
 ```text
 wallpaper.mp4
